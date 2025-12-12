@@ -1,62 +1,39 @@
-const { initializeFirebase, getDatabase } = require('./firebase-config');
-const ioHook = require('iohook');
+const { initializeFirebase } = require('./firebase-config');
+const robot = require('robotjs');
 
 class RemoteController {
     constructor(sessionId, serviceAccountPath) {
         this.sessionId = sessionId;
         this.database = initializeFirebase(serviceAccountPath);
         this.commandRef = this.database.ref(`sessions/${sessionId}/commands`);
-        this.isMouseDown = false;
+        this.lastPos = { x: 0, y: 0 };
+        this.pollInterval = null;
         
         console.log(`Controller initialized for session: ${sessionId}`);
     }
 
     start() {
-        console.log('Starting controller - capturing mouse events...');
+        console.log('Starting controller - capturing mouse position...');
         
-        ioHook.on('mousemove', event => {
-            this.sendCommand({
-                type: 'move',
-                x: event.x,
-                y: event.y,
-                timestamp: Date.now()
-            });
-        });
-
-        ioHook.on('mousedown', event => {
-            this.isMouseDown = true;
-            this.sendCommand({
-                type: 'mousedown',
-                x: event.x,
-                y: event.y,
-                button: event.button,
-                timestamp: Date.now()
-            });
-        });
-
-        ioHook.on('mouseup', event => {
-            this.isMouseDown = false;
-            this.sendCommand({
-                type: 'mouseup',
-                x: event.x,
-                y: event.y,
-                button: event.button,
-                timestamp: Date.now()
-            });
-        });
-
-        ioHook.on('mouseclick', event => {
-            this.sendCommand({
-                type: 'click',
-                x: event.x,
-                y: event.y,
-                button: event.button,
-                timestamp: Date.now()
-            });
-        });
-
-        ioHook.start();
+        // Poll mouse position every 16ms (~60fps)
+        this.pollInterval = setInterval(() => {
+            const pos = robot.getMousePos();
+            
+            // Only send if position changed
+            if (pos.x !== this.lastPos.x || pos.y !== this.lastPos.y) {
+                this.sendCommand({
+                    type: 'move',
+                    x: pos.x,
+                    y: pos.y,
+                    timestamp: Date.now()
+                });
+                
+                this.lastPos = { x: pos.x, y: pos.y };
+            }
+        }, 16);
+        
         console.log('Controller started successfully');
+        console.log('Move your mouse to send commands. Press Ctrl+C to stop.');
     }
 
     sendCommand(command) {
@@ -68,11 +45,13 @@ class RemoteController {
 
     stop() {
         console.log('Stopping controller...');
-        ioHook.stop(); // Stop listening
-        ioHook.unload();
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+            this.pollInterval = null;
+        }
         console.log('Controller stopped');
     }
- 
+
     async clearSession() {
         try {
             await this.commandRef.remove();
