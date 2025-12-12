@@ -1,0 +1,6 @@
+node_modules/
+credential.json
+*.log
+.DS_Store
+.env
+package.json
