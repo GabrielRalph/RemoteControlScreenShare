@@ -1,0 +1,24 @@
+{
+  "name": "remote-control-screen-share",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remote control / screen share helpers for macOS (mouse events & overlay).",
+  "type": "module",
+  "scripts": {
+    "build": "node-gyp configure build",
+    "clean": "node-gyp clean",
+    "test": "echo \"No tests specified\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.3.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.1.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
+

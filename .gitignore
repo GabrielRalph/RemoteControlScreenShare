@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+build/
+*.node
+*.o
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+

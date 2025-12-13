@@ -1,47 +1,64 @@
 
+import { createRequire } from "node:module";
 
 /**
- * Simulates a virtual click at the specified (x, y) coordinates.
- *
- * @param {number} x - The x-coordinate of the click.
- * @param {number} y - The y-coordinate of the click.
+ * Load native extension module
+ */
+const require = createRequire(import.meta.url);
+const native = require("./build/Release/remote_control.node");
+
+/**
+ * Perform a left mouse click at specified coordinates
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
  */
 function click(x, y) {
-
+  return native.click(x, y);
 }
 
 /**
- * Simulates moving the mouse to the specified (x, y) coordinates.
- *
- * @param {number} x - The x-coordinate to move to.
- * @param {number} y - The y-coordinate to move to.
+ * Move mouse cursor to specified coordinates
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
  */
 function move(x, y) {
-
+  return native.move(x, y);
 }
-
 
 /**
- * Simulates a mouse down event.
+ * Press left mouse button
+ * @param {number} [x] - Optional X coordinate for mouse down position
+ * @param {number} [y] - Optional Y coordinate for mouse down position
+ * If coordinates are not provided, uses current mouse position
  */
-function mouseDown() {
-
+function mouseDown(x, y) {
+  if (x !== undefined && y !== undefined) {
+    return native.mouseDown(x, y);
+  } else {
+    return native.mouseDown();
+  }
 }
-
-
-/** * Simulates a mouse up event.
- */
-function mouseUp() {
-
-}
-
 
 /**
- * Creates a border around the viewport to show what the user 
- * is currently sharing.
+ * Release left mouse button
+ * @param {number} [x] - Optional X coordinate for mouse up position
+ * @param {number} [y] - Optional Y coordinate for mouse up position
+ * If coordinates are not provided, uses current mouse position
+ */
+function mouseUp(x, y) {
+  if (x !== undefined && y !== undefined) {
+    return native.mouseUp(x, y);
+  } else {
+    return native.mouseUp();
+  }
+}
+
+/**
+ * Create overlay frame with rounded top corners
+ * Displays a border overlay on the screen
  */
 function createOverlayFrame() {
-
+  return native.createOverlayFrame();
 }
 
-export { click, mouseDown, mouseUp, move, createOverlayFrame};
+export { click, mouseDown, mouseUp, move, createOverlayFrame };
