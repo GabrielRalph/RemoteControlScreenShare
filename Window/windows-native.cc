@@ -275,7 +275,7 @@ void CreateOverlayWindowThread() {
     WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
     L"OverlayWindowClass",
     L"Overlay",
-    WS_POPUP,
+    WS_POPUP | WS_VISIBLE,
     0, 0, screenWidth, screenHeight,
     NULL, NULL, hInstance, NULL
   );
@@ -284,16 +284,13 @@ void CreateOverlayWindowThread() {
     return;
   }
   
-  // Make window transparent and click-through
   SetLayeredWindowAttributes(gOverlayWindow, RGB(0, 0, 0), 0, LWA_COLORKEY);
-  SetLayeredWindowAttributes(gOverlayWindow, 0, 230, LWA_ALPHA);
-  
   ShowWindow(gOverlayWindow, SW_SHOW);
   UpdateWindow(gOverlayWindow);
   
-  // Message loop (non-blocking, just process existing messages)
+  // Full message loop to keep window alive
   MSG msg;
-  while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+  while (GetMessage(&msg, NULL, 0, 0)) {
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
