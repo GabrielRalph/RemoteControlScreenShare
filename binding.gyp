@@ -3,7 +3,7 @@
   "targets": [
     {
       "target_name": "windows_native",
-      "sources": [ "windows-native.cc" ],
+      "sources": [ "Window/windows-native.cc" ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")"
       ],
