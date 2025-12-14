@@ -1,3 +1,4 @@
+# binding.gyp, compile C++ code to node addon
 {
   "targets": [
     {
