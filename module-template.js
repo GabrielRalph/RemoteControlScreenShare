@@ -3,14 +3,21 @@ const os = require('os');
 // Use platform-specific implementation
 let platformModule;
 if (os.platform() === 'win32') {
-    // Windows-native implementation
-    platformModule = require('./windows-native');
-} else if (os.platform() === 'darwin') {
-    // macOS-native implementation (to be provided by macOS team)
+    // Try native Windows implementation first
     try {
-        platformModule = require('./macos-native');
+        platformModule = require('./build/Release/windows_native.node');
+        console.log('Using native Windows implementation');
     } catch (error) {
-        console.warn('macOS-native module not found, falling back to cross-platform');
+        console.warn('Native Windows module not found, falling back to FFI implementation');
+        platformModule = require('./windows-native');
+    }
+} else if (os.platform() === 'darwin') {
+    // Try native macOS implementation first
+    try {
+        platformModule = require('./build/Release/macos_native.node');
+        console.log('Using native macOS implementation');
+    } catch (error) {
+        console.warn('Native macOS module not found, falling back to cross-platform');
         const { mouse, Button } = require('@nut-tree/nut-js');
         platformModule = {
             click: async (x, y) => {
@@ -87,6 +94,12 @@ function mouseUp() {
  * is currently sharing.
  */
 function createOverlayFrame() {
+    // Try to use native implementation if available
+    if (platformModule.createOverlayFrame) {
+        return platformModule.createOverlayFrame();
+    }
+    
+    // Fallback to Electron-based overlay
     const { exec, spawn } = require('child_process');
     const path = require('path');
     const os = require('os');
