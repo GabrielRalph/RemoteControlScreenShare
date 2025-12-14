@@ -5,7 +5,7 @@ class RemoteController {
     constructor(sessionId, serviceAccountPath) {
         this.sessionId = sessionId;
         this.database = initializeFirebase(serviceAccountPath);
-        this.commandRef = this.database.ref(`sessions/${sessionId}/commands`);
+        this.sessionRef = this.database.ref(`sessions/${sessionId}`);
         this.lastPos = { x: 0, y: 0 };
         this.pollInterval = null;
         
@@ -21,13 +21,7 @@ class RemoteController {
             
             // Only send if position changed
             if (pos.x !== this.lastPos.x || pos.y !== this.lastPos.y) {
-                this.sendCommand({
-                    type: 'move',
-                    x: pos.x,
-                    y: pos.y,
-                    timestamp: Date.now()
-                });
-                
+                this.updateMouseState(pos.x, pos.y);
                 this.lastPos = { x: pos.x, y: pos.y };
             }
         }, 16);
@@ -36,11 +30,23 @@ class RemoteController {
         console.log('Move your mouse to send commands. Press Ctrl+C to stop.');
     }
 
-    sendCommand(command) {
-        this.commandRef.push(command)
-            .catch(error => {
-                console.error('Error sending command:', error);
-            });
+    updateMouseState(x, y) {
+        this.sessionRef.update({
+            mouseX: x,
+            mouseY: y,
+            timestamp: Date.now()
+        }).catch(error => {
+            console.error('Error updating mouse state:', error);
+        });
+    }
+
+    sendAction(action) {
+        this.sessionRef.update({
+            action: action,
+            actionTimestamp: Date.now()
+        }).catch(error => {
+            console.error('Error sending action:', error);
+        });
     }
 
     stop() {
@@ -54,7 +60,7 @@ class RemoteController {
 
     async clearSession() {
         try {
-            await this.commandRef.remove();
+            await this.sessionRef.remove();
             console.log('Session cleared');
         } catch (error) {
             console.error('Error clearing session:', error);

@@ -1,0 +1,30 @@
+{
+  "name": "remote-control-screen-share",
+  "version": "1.0.0",
+  "description": "Remote control screen sharing using Firebase Realtime Database",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "controller": "node controller.js",
+    "receiver": "node receiver.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "remote-control",
+    "screen-share",
+    "firebase",
+    "robotjs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "electron": "^28.0.0",
+    "firebase-admin": "^12.7.0",
+    "robotjs": "^0.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {}
+}

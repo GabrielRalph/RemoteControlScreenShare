@@ -5,52 +5,43 @@ class RemoteReceiver {
     constructor(sessionId, serviceAccountPath) {
         this.sessionId = sessionId;
         this.database = initializeFirebase(serviceAccountPath);
-        this.commandRef = this.database.ref(`sessions/${sessionId}/commands`);
-        this.lastProcessedTimestamp = 0;
-        this.processedCommands = new Set();
+        this.sessionRef = this.database.ref(`sessions/${sessionId}`);
+        this.mouseXRef = this.sessionRef.child('mouseX');
+        this.mouseYRef = this.sessionRef.child('mouseY');
+        this.actionRef = this.sessionRef.child('action');
+        this.lastAction = null;
+        this.lastActionTimestamp = 0;
         
         console.log(`Receiver initialized for session: ${sessionId}`);
     }
 
     start() {
-        console.log('Starting receiver - listening for commands...');
+        console.log('Starting receiver - listening for mouse state...');
         
         createOverlayFrame();
 
-        this.commandRef.on('child_added', (snapshot) => {
-            const command = snapshot.val();
-            const commandKey = snapshot.key;
-            
-            if (this.processedCommands.has(commandKey)) {
-                return;
-            }
-            
-            if (command.timestamp <= this.lastProcessedTimestamp) {
-                return;
+        this.sessionRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            if (data.mouseX !== undefined && data.mouseY !== undefined) {
+                move(data.mouseX, data.mouseY);
             }
 
-            this.executeCommand(command);
-            this.processedCommands.add(commandKey);
-            this.lastProcessedTimestamp = command.timestamp;
-
-            if (this.processedCommands.size > 1000) {
-                const oldestKeys = Array.from(this.processedCommands).slice(0, 500);
-                oldestKeys.forEach(key => this.processedCommands.delete(key));
+            if (data.action && data.actionTimestamp > this.lastActionTimestamp) {
+                this.executeAction(data.action);
+                this.lastActionTimestamp = data.actionTimestamp;
             }
         });
 
         console.log('Receiver started successfully');
     }
 
-    executeCommand(command) {
+    executeAction(action) {
         try {
-            switch (command.type) {
-                case 'move':
-                    move(command.x, command.y);
-                    break;
-                
+            switch (action.type) {
                 case 'click':
-                    click(command.x, command.y);
+                    click(action.x, action.y);
                     break;
                 
                 case 'mousedown':
@@ -62,22 +53,22 @@ class RemoteReceiver {
                     break;
                 
                 default:
-                    console.warn(`Unknown command type: ${command.type}`);
+                    console.warn(`Unknown action type: ${action.type}`);
             }
         } catch (error) {
-            console.error('Error executing command:', error);
+            console.error('Error executing action:', error);
         }
     }
 
     stop() {
         console.log('Stopping receiver...');
-        this.commandRef.off();
+        this.sessionRef.off();
         console.log('Receiver stopped');
     }
 
     async clearSession() {
         try {
-            await this.commandRef.remove();
+            await this.sessionRef.remove();
             console.log('Session cleared');
         } catch (error) {
             console.error('Error clearing session:', error);

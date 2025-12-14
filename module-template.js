@@ -1,4 +1,52 @@
-const { mouse, Button } = require('@nut-tree/nut-js');
+const os = require('os');
+
+// Use platform-specific implementation
+let platformModule;
+if (os.platform() === 'win32') {
+    // Windows-native implementation
+    platformModule = require('./windows-native');
+} else if (os.platform() === 'darwin') {
+    // macOS-native implementation (to be provided by macOS team)
+    try {
+        platformModule = require('./macos-native');
+    } catch (error) {
+        console.warn('macOS-native module not found, falling back to cross-platform');
+        const { mouse, Button } = require('@nut-tree/nut-js');
+        platformModule = {
+            click: async (x, y) => {
+                await mouse.setPosition({ x, y });
+                await mouse.click(Button.LEFT);
+            },
+            move: async (x, y) => {
+                await mouse.setPosition({ x, y });
+            },
+            mouseDown: async () => {
+                await mouse.pressButton(Button.LEFT);
+            },
+            mouseUp: async () => {
+                await mouse.releaseButton(Button.LEFT);
+            }
+        };
+    }
+} else {
+    // Fallback to cross-platform library for Linux and others
+    const { mouse, Button } = require('@nut-tree/nut-js');
+    platformModule = {
+        click: async (x, y) => {
+            await mouse.setPosition({ x, y });
+            await mouse.click(Button.LEFT);
+        },
+        move: async (x, y) => {
+            await mouse.setPosition({ x, y });
+        },
+        mouseDown: async () => {
+            await mouse.pressButton(Button.LEFT);
+        },
+        mouseUp: async () => {
+            await mouse.releaseButton(Button.LEFT);
+        }
+    };
+}
 
 /**
  * Simulates a virtual click at the specified (x, y) coordinates.
@@ -6,9 +54,8 @@ const { mouse, Button } = require('@nut-tree/nut-js');
  * @param {number} x - The x-coordinate of the click.
  * @param {number} y - The y-coordinate of the click.
  */
-async function click(x, y) {
-    await mouse.setPosition({ x, y });
-    await mouse.click(Button.LEFT);
+function click(x, y) {
+    return platformModule.click(x, y);
 }
 
 /**
@@ -17,21 +64,22 @@ async function click(x, y) {
  * @param {number} x - The x-coordinate to move to.
  * @param {number} y - The y-coordinate to move to.
  */
-async function move(x, y) {
-    await mouse.setPosition({ x, y });
+function move(x, y) {
+    return platformModule.move(x, y);
 }
 
 /**
  * Simulates a mouse down event.
  */
-async function mouseDown() {
-    await mouse.pressButton(Button.LEFT);
+function mouseDown() {
+    return platformModule.mouseDown();
 }
 
-/** * Simulates a mouse up event.
+/**
+ * Simulates a mouse up event.
  */
-async function mouseUp() {
-    await mouse.releaseButton(Button.LEFT);
+function mouseUp() {
+    return platformModule.mouseUp();
 }
 
 /**
