@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Viewer</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 20px;
+      background: #1a1a1a;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video {
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: 8px;
+    }
+    #status { color: #28a745; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Viewer</h1>
+    <div id="status">Connecting...</div>
+  </header>
+  <main>
+    <video id="video" autoplay playsinline></video>
+  </main>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
+    let pc = null;
+
+    const config = {
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    };
+
+    socket.on('connect', () => {
+      socket.emit('join-viewer');
+      status.textContent = 'Waiting for presenter...';
+    });
+
+    socket.on('offer', async ({ senderId, offer }) => {
+      // Create peer connection (NATIVE WEBRTC)
+      pc = new RTCPeerConnection(config);
+
+      // When we receive video track
+      pc.ontrack = (event) => {
+        video.srcObject = event.streams[0];
+        status.textContent = 'Receiving stream';
+      };
+
+      // Send our network routes to presenter
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('ice-candidate', {
+            targetId: senderId,
+            candidate: event.candidate
+          });
+        }
+      };
+
+      // Process the offer
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      
+      // Create answer
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      // Send answer back
+      socket.emit('answer', {
+        targetId: senderId,
+        answer: answer
+      });
+    });
+
+    socket.on('ice-candidate', async ({ candidate }) => {
+      if (pc && candidate) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+    });
+
+    socket.on('presenter-left', () => {
+      if (pc) pc.close();
+      video.srcObject = null;
+      status.textContent = 'Presenter disconnected';
+    });
+  </script>
+</body>
+</html>

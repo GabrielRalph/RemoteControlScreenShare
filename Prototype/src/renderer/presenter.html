@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Screen Share - Presenter</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover { background: #0056b3; }
+    #stopBtn { background: #dc3545; display: none; }
+    #stopBtn:hover { background: #c82333; }
+    #status {
+      padding: 15px;
+      background: #2a2a2a;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    video {
+      width: 100%;
+      max-width: 800px;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      background: #000;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Screen Share - Presenter</h1>
+  
+  <button id="shareBtn">Share Screen</button>
+  <button id="stopBtn">Stop Sharing</button>
+  
+  <div id="status">Status: Not sharing</div>
+  <div id="viewerCount">Viewers: 0</div>
+  
+  <h3>Preview:</h3>
+  <video id="preview" autoplay muted></video>
+  
+  <script src="presenter.js"></script>
+</body>
+</html>

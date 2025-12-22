@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Select Screen</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+    }
+    .sources {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+    }
+    .source {
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .source:hover {
+      border-color: #007bff;
+      transform: scale(1.02);
+    }
+    .source img {
+      width: 100%;
+      border-radius: 4px;
+    }
+    .source-name {
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>Select Screen or Window</h2>
+  <div id="sources" class="sources"></div>
+  
+  <script src="picker.js"></script>
+</body>
+</html>
